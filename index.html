@@ -1,0 +1,720 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>RUEYMAN - ระบบบริหารจัดการบัญชีอิเล็กทรอนิกส์</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        /* ตั้งค่าฟอนต์หลักเป็น Inter และใช้สีพื้นหลังเข้มแบบมืออาชีพ */
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0F172A; /* Slate Blue Dark */
+            /* *** แก้ไข: min-height: 100vh ยังคงอยู่ แต่เพิ่ม padding ด้านล่าง และ ลบ overflow: hidden; ออกไป *** */
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding: 1.5rem 1rem 5rem 1rem; /* เพิ่ม padding ด้านล่าง (5rem) ให้เลื่อนได้สะดวก */
+            z-index: 0;
+            background-image: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            transition: all 0.05s ease-out; 
+            position: relative; 
+            /* ลบ: overflow: hidden; ออกแล้ว */
+        }
+
+        /* --- CSS for เวอร์โง่ๆ effect --- */
+
+        /* Keyframes สำหรับการเปลี่ยนสีรุ้งอย่างบ้าคลั่ง */
+        @keyframes epileptic-rainbow {
+            0%   { filter: hue-rotate(0deg) saturate(300%); }
+            100% { filter: hue-rotate(360deg) saturate(300%); }
+        }
+
+        /* Keyframes สำหรับการสั่นสะเทือนที่ดูไร้สาระและรุนแรง (เร็วมาก) */
+        @keyframes aggressive-shake {
+            0%, 100% { transform: translate(0px, 0px) rotate(0deg); }
+            5%   { transform: translate(-7px, -3px) rotate(-1deg); }
+            15%  { transform: translate(10px, 2px) rotate(1.5deg); }
+            25%  { transform: translate(-12px, -5px) rotate(-2deg); }
+            35%  { transform: translate(15px, 4px) rotate(2.5deg); }
+            50%  { transform: translate(-15px, -6px) rotate(-3deg); }
+            75%  { transform: translate(12px, 3px) rotate(2deg); }
+            90%  { transform: translate(-7px, -2px) rotate(-1deg); }
+        }
+
+        /* คลาสที่ใช้กับ Body เมื่อเข้าสู่โหมดวุ่นวาย */
+        .chaos-mode {
+            animation: epileptic-rainbow 0.2s infinite alternate,
+                       aggressive-shake 0.05s infinite alternate; /* 0.05s เพื่อความเวอร์ขั้นสุด */
+        }
+        /* --- END NEW CSS --- */
+
+
+        /* Style สำหรับบัตรเลือกแพ็กเกจ/เกม - เน้นความสะอาดตา */
+        .card-base {
+            transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+            cursor: pointer;
+            border: 2px solid #334155; 
+            background-color: #1e293b; 
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+            border-radius: 0.75rem;
+        }
+
+        .card-base:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 8px 15px rgba(6, 182, 212, 0.4);
+            border-color: #06b6d4; 
+        }
+
+        /* Base Selected Style */
+        .card-base.selected {
+            border-color: #06b6d4; 
+            background-color: #0f172a; 
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.8);
+            transform: scale(1.02); 
+        }
+
+        /* ULTIMATE PACKAGE (The highest tier) */
+        .card-base.ultimate-tier {
+            border: 3px solid #E5E7EB; /* Platinum Border */
+            background: linear-gradient(145deg, #374151, #1F2937);
+            box-shadow: 0 0 30px rgba(156, 163, 175, 0.5);
+        }
+
+        /* High-Tier Selection Animation */
+        @keyframes neon-pulse {
+            0% {
+                box-shadow: 0 0 10px rgba(56, 189, 248, 0.5), 0 0 20px rgba(56, 189, 248, 0.2);
+            }
+            50% {
+                box-shadow: 0 0 30px rgba(56, 189, 248, 1), 0 0 50px rgba(56, 189, 248, 0.5);
+            }
+            100% {
+                box-shadow: 0 0 10px rgba(56, 189, 248, 0.5), 0 0 20px rgba(56, 189, 248, 0.2);
+            }
+        }
+
+        .card-base.selected.high-tier {
+            animation: neon-pulse 1.5s ease-in-out infinite alternate;
+            border-color: #38bdf8; /* Sky Blue for high contrast */
+            transform: scale(1.05) translateY(-5px); 
+            background: linear-gradient(145deg, #1e3a8a, #0c4a6e); 
+            z-index: 10;
+        }
+
+        /* Custom styles for the "Currency" icon - More corporate look */
+        .currency-icon {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            background-color: #06b6d4; /* Teal */
+            border-radius: 4px; /* Square/Modern icon */
+            position: relative;
+            font-size: 14px;
+            font-weight: 700;
+            line-height: 24px;
+            color: #1e293b;
+        }
+        
+        /* Style for the main card container */
+        .main-card {
+            background-color: #111827; /* Darker slate */
+            border-radius: 1.5rem; 
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.6);
+            border-top: 5px solid #06b6d4;
+        }
+
+        /* Package Name Style */
+        .package-name {
+            min-height: 1.5rem; /* Ensure stability */
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Header Section (Brand Name) - More authoritative language -->
+    <header class="w-full max-w-xl text-center mb-10 mt-4">
+        <h1 class="text-5xl font-extrabold tracking-tight text-white drop-shadow-lg">
+            RUEYMAN <span class="text-3xl font-light block mt-[-5px] text-gray-400">Electronic Account Management System</span>
+        </h1>
+        <p class="text-cyan-400 mt-2 text-lg font-medium">ศูนย์กลางการประมวลผลธุรกรรมอิเล็กทรอนิกส์สำหรับผลิตภัณฑ์เกม</p>
+    </header>
+
+    <!-- Main Top-Up Card -->
+    <main class="w-full max-w-xl p-6 sm:p-8 main-card">
+
+        <!-- Step 0: Account Management -->
+        <section class="mb-8" id="step0-account">
+            <h2 class="text-xl font-bold text-white mb-3 flex items-center border-b border-gray-700 pb-2">
+                <!-- Icon: Lucide 'Settings' equivalent using SVG -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0-.33-1.82 1.65 1.65 0 0 0-1.51-1V12a2 2 0 0 1-2-2 2 2 0 0 1 2-2v-.09a1.65 1.65 0 0 0 .33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9.4a1.65 1.65 0 0 0 1.51-1V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9.4a1.65 1.65 0 0 0 1.51 1V12a2 2 0 0 1-2 2v.09a1.65 1.65 0 0 0-.33 1.82z"/></svg>
+                0. การจัดการบัญชีระบบ (RUEYMAN System Account)
+            </h2>
+            
+            <!-- Profile Picture Upload -->
+            <div class="flex items-center space-x-4 mb-4">
+                <div id="profile-pic-preview" class="w-16 h-16 bg-gray-600 rounded-full flex items-center justify-center text-gray-300 overflow-hidden border-2 border-cyan-500 flex-shrink-0">
+                    <!-- Default User Icon -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                </div>
+                <input type="file" id="profilePicInput" class="hidden" accept="image/*" onchange="previewImage(this)">
+                <button onclick="document.getElementById('profilePicInput').click()" 
+                        class="px-4 py-2 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-lg transition duration-150">
+                    อัปโหลดรูปภาพ
+                </button>
+            </div>
+
+            <!-- Input Fields -->
+            <div class="space-y-3">
+                <input type="text" id="accountNameInput" placeholder="ชื่อบัญชี (Username/Account Name)" 
+                       class="w-full p-3 bg-gray-800 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition duration-150"
+                       maxlength="20" required>
+                
+                <input type="email" id="emailInput" placeholder="อีเมล (Email Address)" 
+                       class="w-full p-3 bg-gray-800 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition duration-150"
+                       required>
+
+                <input type="password" id="passwordInput" placeholder="รหัสผ่าน" 
+                       class="w-full p-3 bg-gray-800 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition duration-150"
+                       minlength="6" oninput="checkPasswords()" required>
+
+                <input type="password" id="confirmPasswordInput" placeholder="ยืนยันรหัสผ่าน" 
+                       class="w-full p-3 bg-gray-800 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition duration-150"
+                       minlength="6" oninput="checkPasswords()" required>
+                <p id="password-match-error" class="text-red-400 text-sm h-5"></p>
+            </div>
+        </section>
+        
+        <!-- Step 1: Game Selection (Formal: Product and Service Specification) -->
+        <section class="mb-8" id="step1-game">
+            <h2 class="text-xl font-bold text-white mb-3 flex items-center border-b border-gray-700 pb-2">
+                <!-- Icon: Lucide 'Gamepad' equivalent using SVG -->
+                <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 10H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2"/><path d="M6 15v-1a2 2 0 0 0-2-2H2"/><path d="M18 15v-1a2 2 0 0 1 2-2h2"/><rect x="2" y="10" width="20" height="12" rx="2"/><path d="M10 15h4"/><path d="M12 13v4"/></svg>
+                1. การระบุผลิตภัณฑ์และบริการ (Product Specification)
+            </h2>
+            <div class="grid grid-cols-3 gap-4" id="game-container">
+                <!-- Game Selection Cards -->
+                <div class="card-base text-center p-3" data-game-id="aov" onclick="selectGame('aov', this)">
+                    <span class="text-2xl">⚔️</span>
+                    <p class="text-white text-sm mt-1 font-semibold">AOV/RoV</p>
+                    <p class="text-gray-400 text-xs">Vouchers</p>
+                </div>
+                <div class="card-base text-center p-3" data-game-id="freefire" onclick="selectGame('freefire', this)">
+                    <span class="text-2xl">🔥</span>
+                    <p class="text-white text-sm mt-1 font-semibold">Free Fire</p>
+                    <p class="text-gray-400 text-xs">Diamonds</p>
+                </div>
+                <div class="card-base text-center p-3" data-game-id="roblox" onclick="selectGame('roblox', this)">
+                    <span class="text-2xl">🧱</span>
+                    <p class="text-white text-sm mt-1 font-semibold">Roblox</p>
+                    <p class="text-gray-400 text-xs">Robux</p>
+                </div>
+            </div>
+        </section>
+        
+        <!-- Game-Specific Steps (Hidden until game selected) -->
+        <div id="game-steps-container" class="hidden">
+
+            <!-- Step 2: Account Information (Formal: User Account Details) -->
+            <section class="mb-8">
+                <h2 class="text-xl font-bold text-white mb-3 flex items-center border-b border-gray-700 pb-2">
+                    <!-- Icon: Lucide 'User' equivalent using SVG -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                    2. รายละเอียดบัญชีผู้ใช้งาน (<span id="step2-label">User Account Details</span>)
+                </h2>
+                <input type="text" id="userIdInput" 
+                       class="w-full p-3 bg-gray-800 text-white border border-gray-600 rounded-lg focus:ring-2 focus:ring-cyan-500 focus:border-cyan-500 transition duration-150"
+                       maxlength="15"
+                       oninput="validateInput(this)"
+                       required>
+                <p id="id-error" class="text-red-400 text-sm mt-1 h-5"></p>
+            </section>
+
+            <!-- Step 3: Product Selection (Formal: Currency Unit Value Definition) -->
+            <section class="mb-8">
+                <h2 class="text-xl font-bold text-white mb-3 flex items-center border-b border-gray-700 pb-2">
+                    <!-- Icon: Lucide 'Wallet' equivalent using SVG -->
+                    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5 mr-2 text-cyan-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 12V8H6a2 2 0 0 1-2-2c0-1.1.9-2 2-2h12.5C22.25 4 23 4.75 23 5.5v11c0 .75-.75 1.5-1.5 1.5H4"/></svg>
+                    3. การกำหนดมูลค่าหน่วยเงิน (<span id="step3-label">Currency Unit Value Definition</span>)
+                </h2>
+
+                <!-- Grid container remains the same: 2 columns on mobile, 4 on desktop -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4" id="package-container">
+                    <!-- Package Cards will be generated by JS -->
+                    <p class="text-gray-400 col-span-2 md:col-span-4 text-center" id="loading-packages">กำลังประมวลผลการจัดเตรียมแพ็กเกจ...</p>
+                </div>
+            </section>
+            
+            <!-- Step 4: Payment Button (Formal: Service Fee Payment Order Submission) -->
+            <section>
+                <button id="topUpButton" 
+                        class="w-full py-4 text-xl font-bold rounded-xl shadow-xl transition duration-300 
+                               bg-cyan-600 hover:bg-cyan-500 text-white hover:shadow-cyan-400/50 
+                               disabled:bg-gray-700 disabled:text-gray-400 disabled:cursor-not-allowed transform hover:scale-[1.005]"
+                        onclick="simulateTopUp()"
+                        disabled>
+                    <span id="button-text">กรุณาเลือกผลิตภัณฑ์เพื่อดำเนินการต่อ</span>
+                </button>
+            </section>
+        </div>
+
+    </main>
+
+    <!-- Success Modal (Custom Div) - Highly formal language -->
+    <div id="successModal" class="fixed inset-0 bg-black bg-opacity-75 z-50 flex items-center justify-center hidden" onclick="closeModal()">
+        <div class="bg-white p-8 rounded-xl shadow-2xl text-center max-w-sm mx-4 transform transition-all duration-300 scale-95" onclick="event.stopPropagation()">
+            <!-- Icon: Green Checkmark using SVG -->
+            <svg class="w-16 h-16 text-green-600 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+            <h3 class="text-3xl font-bold text-gray-800 mb-2">การประมวลผลธุรกรรมสำเร็จ! (โหมด CHAOS ทำงาน)</h3>
+            <p id="modal-message" class="text-gray-600 mb-4 text-base"></p>
+            <button class="px-6 py-2 bg-cyan-600 text-white font-semibold rounded-lg hover:bg-cyan-700 transition" onclick="closeModal()">
+                ปิด (และหยุดการสั่นสะเทือน)
+            </button>
+        </div>
+    </div>
+
+    <!-- JavaScript Logic -->
+    <script>
+        let currentMaxId = 0; // Global ID counter to ensure unique IDs for all packages
+        let isChaos = false; // NEW: State to track the chaos mode
+
+        /**
+         * Assigns sequential global IDs to initial tiers.
+         */
+        function generateBaseTiers(baseTiers) {
+            return baseTiers.map(tier => {
+                currentMaxId++;
+                return { ...tier, id: currentMaxId };
+            });
+        }
+
+        /**
+         * Generates over 50 expanded tiers using exponential growth.
+         */
+        function generateExpandedTiers(baseTiers, amountGrowthFactor, priceGrowthFactor) {
+            const tiers = [...baseTiers];
+            let lastTier = tiers[tiers.length - 1];
+            let lastAmount = lastTier.amount;
+            let lastPrice = lastTier.price;
+
+            // Generate 50 new tiers (total tiers will be 57)
+            for (let i = 0; i < 50; i++) {
+                currentMaxId++;
+                
+                let newAmount = Math.ceil(lastAmount * amountGrowthFactor);
+                let newPrice = Math.ceil(lastPrice * priceGrowthFactor);
+                
+                // Ensure price and amount growth is significant and unique
+                if (newAmount <= lastAmount) newAmount = lastAmount + 100;
+                if (newPrice <= lastPrice) newPrice = lastPrice + 50;
+                
+                // Apply a high-tier bonus ratio for better appeal as tiers increase
+                if (i > 30) { 
+                     newAmount = Math.ceil(newAmount * 1.05); 
+                }
+
+                const isUltimate = (i === 49); // The 50th generated tier is the ultimate one
+                
+                tiers.push({
+                    id: currentMaxId,
+                    amount: newAmount,
+                    price: newPrice,
+                    isUltimate: isUltimate,
+                    // Store the index relative to the generated tiers (0 to 56)
+                    tierIndex: tiers.length 
+                });
+
+                lastAmount = newAmount;
+                lastPrice = newPrice;
+            }
+            return tiers;
+        }
+
+        /**
+         * กำหนดชื่อแพ็กเกจตามลำดับขั้นความมั่งคั่ง (0-56)
+         * @param {number} index - ลำดับของแพ็กเกจ (0 คือแพ็กเกจที่เล็กที่สุด)
+         * @returns {string} ชื่อแพ็กเกจที่สนุกสนาน
+         */
+        function getPackageName(index) {
+            if (index === 0) return 'หิวมาม่า'; // Index 0 (First tier)
+            if (index === 1) return 'ไอไม่มีตังซื้อมาม่า'; // Index 1
+            if (index <= 3) return 'มือใหม่หัดเปย์'; // Index 2-3
+            if (index <= 6) return 'นักรบแนวหน้า'; // Index 4-6
+            if (index <= 10) return 'นักล่าเงินรางวัล'; // Index 7-10
+            if (index <= 20) return 'เศรษฐีเบื้องต้น'; // Index 11-20
+            if (index <= 40) return 'เจ้าชายแห่งการ์ด'; // Index 21-40
+            if (index <= 55) return 'มหาเศรษฐีพันล้าน'; // Index 41-55
+            // index 56 (the ultimate tier)
+            return '💎 องค์ศุลต่าน 💎'; 
+        }
+
+        // --- 1. Define Base Tiers and Generate Expanded Data ---
+
+        const AOV_BASE_TIERS = generateBaseTiers([
+            { amount: 50, price: 19 }, { amount: 100, price: 39 }, 
+            { amount: 200, price: 75 }, { amount: 500, price: 180 }, 
+            { amount: 1200, price: 429 }, { amount: 2500, price: 850 }, 
+            { amount: 5000, price: 1699 }
+        ].map((t, i) => ({ ...t, tierIndex: i }))); // Ensure base tiers also have tierIndex
+
+        const FF_BASE_TIERS = generateBaseTiers([
+            { amount: 100, price: 35 }, { amount: 310, price: 100 }, 
+            { amount: 520, price: 160 }, { amount: 1060, price: 320 }, 
+            { amount: 2180, price: 650 }, { amount: 4400, price: 1250 }, 
+            { amount: 5600, price: 1599 }
+        ].map((t, i) => ({ ...t, tierIndex: i })));
+
+        const ROBLOX_BASE_TIERS = generateBaseTiers([
+            { amount: 400, price: 150 }, { amount: 800, price: 290 }, 
+            { amount: 1700, price: 580 }, { amount: 4500, price: 1450 }, 
+            { amount: 8000, price: 2500 }, { amount: 10000, price: 3000 }, 
+            { amount: 17000, price: 5500 }
+        ].map((t, i) => ({ ...t, tierIndex: i })));
+
+        const gameData = {
+            'aov': {
+                name: 'Arena of Valor (AOV/RoV)',
+                currency: 'Vouchers',
+                currencyIcon: 'V', 
+                idLabel: 'User ID (6-12 หลัก)',
+                idPlaceholder: 'กรุณาระบุ Garena/AOV User ID',
+                idRegex: /^\d{6,12}$/, // 6-12 digits
+                tiers: generateExpandedTiers(AOV_BASE_TIERS, 1.3, 1.25)
+            },
+            'freefire': {
+                name: 'Free Fire',
+                currency: 'Diamonds',
+                currencyIcon: '💎',
+                idLabel: 'Player ID (8-10 หลัก)',
+                idPlaceholder: 'กรุณาระบุ Free Fire Player ID',
+                idRegex: /^\d{8,10}$/, // 8-10 digits
+                tiers: generateExpandedTiers(FF_BASE_TIERS, 1.35, 1.3)
+            },
+            'roblox': {
+                name: 'Roblox',
+                currency: 'Robux',
+                currencyIcon: 'R$',
+                idLabel: 'Username / User ID',
+                idPlaceholder: 'กรุณาระบุ Roblox Username หรือ User ID',
+                idRegex: /^[a-zA-Z0-9_]{3,20}$|^\d{6,15}$/, // Username (3-20 chars) OR ID (6-15 digits)
+                tiers: generateExpandedTiers(ROBLOX_BASE_TIERS, 1.4, 1.35)
+            }
+        };
+
+        // --- General State ---
+        let selectedGame = null;
+        let selectedPackageId = null;
+
+        // --- DOM Elements ---
+        const topUpButton = document.getElementById('topUpButton');
+        const userIdInput = document.getElementById('userIdInput');
+        const packageContainer = document.getElementById('package-container');
+        const gameStepsContainer = document.getElementById('game-steps-container');
+        const step2Label = document.getElementById('step2-label');
+        const step3Label = document.getElementById('step3-label');
+
+        // --- Core Functions ---
+
+        /**
+         * Previews the selected image file in the profile picture placeholder.
+         * @param {HTMLInputElement} input - The file input element.
+         */
+        function previewImage(input) {
+            const preview = document.getElementById('profile-pic-preview');
+            const file = input.files[0];
+
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    // Replace the SVG icon with the image
+                    preview.innerHTML = `<img src="${e.target.result}" alt="Profile Picture" class="w-full h-full object-cover">`;
+                };
+                reader.readAsDataURL(file);
+            } else {
+                 // Reset to default icon if file is cleared
+                preview.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" class="w-10 h-10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
+            }
+        }
+
+        /**
+         * Checks if the password and confirm password fields match.
+         */
+        function checkPasswords() {
+            const password = document.getElementById('passwordInput').value;
+            const confirmPassword = document.getElementById('confirmPasswordInput').value;
+            const errorElement = document.getElementById('password-match-error');
+
+            if (password.length > 0 && confirmPassword.length > 0 && password !== confirmPassword) {
+                errorElement.textContent = 'รหัสผ่านไม่ตรงกัน';
+                document.getElementById('passwordInput').classList.add('border-red-500');
+                document.getElementById('passwordInput').classList.remove('border-gray-600');
+                document.getElementById('confirmPasswordInput').classList.add('border-red-500');
+                document.getElementById('confirmPasswordInput').classList.remove('border-gray-600');
+            } else {
+                errorElement.textContent = '';
+                document.getElementById('passwordInput').classList.remove('border-red-500');
+                document.getElementById('passwordInput').classList.add('border-gray-600');
+                document.getElementById('confirmPasswordInput').classList.remove('border-red-500');
+                document.getElementById('confirmPasswordInput').classList.add('border-gray-600');
+            }
+        }
+
+        /**
+         * Handles game selection and updates the UI state.
+         * @param {string} gameId - 'aov', 'freefire', or 'roblox'.
+         * @param {HTMLElement} element - The clicked DOM element.
+         */
+        function selectGame(gameId, element) {
+            selectedGame = gameId;
+            selectedPackageId = null; // Reset package selection
+            
+            // Remove 'selected' class from all game cards
+            document.querySelectorAll('#game-container .card-base').forEach(card => {
+                card.classList.remove('selected');
+            });
+
+            // Add 'selected' class to the clicked card
+            element.classList.add('selected');
+
+            // Show subsequent steps
+            gameStepsContainer.classList.remove('hidden');
+
+            // Update Input and Step Labels (Using highly formal Thai)
+            const currentGame = gameData[gameId];
+            step2Label.textContent = `รายละเอียดบัญชีผู้ใช้งาน (${currentGame.name})`;
+            step3Label.textContent = `การกำหนดมูลค่าหน่วยเงิน (${currentGame.currency})`;
+            userIdInput.placeholder = currentGame.idPlaceholder;
+            userIdInput.value = ''; // Clear previous ID
+            
+            // Re-render packages for the selected game
+            renderPackages();
+            // Update button state (will be disabled until ID and package are selected)
+            updateTopUpButtonState();
+            validateInput(userIdInput); // Re-validate the cleared input
+        }
+
+
+        /**
+         * Renders package cards into the container based on selected game.
+         */
+        function renderPackages() {
+            if (!selectedGame) return;
+
+            const tiers = gameData[selectedGame].tiers;
+            const currency = gameData[selectedGame].currency;
+
+            packageContainer.innerHTML = tiers.map(p => {
+                const tierIndex = p.tierIndex; // Get the tier index
+                const packageName = getPackageName(tierIndex); // Get the fun name
+                
+                // Determine CSS classes
+                const isUltimate = p.isUltimate ? 'ultimate-tier' : '';
+                const isHighTier = p.price >= 2000 ? 'high-tier' : ''; 
+                
+                // Content elements
+                const bonusText = p.isUltimate ? '' : ''; // Bonus is now handled by package name
+                const baseClass = p.isUltimate ? 'bg-gray-600/50' : (p.price >= 2000 ? 'bg-indigo-700/50' : 'bg-gray-700/50');
+                
+                // Grid spanning: Ultimate package spans 2 columns on all resolutions
+                const gridSpanClass = p.isUltimate ? 'col-span-2' : ''; 
+                
+                // --- Dynamic font size based on amount length (Currency Units) ---
+                const amountString = p.amount.toLocaleString();
+                let amountFontSize = p.isUltimate ? 'text-3xl' : 'text-xl';
+                
+                // Adjust font size for extremely long numbers (e.g., millions or billions)
+                if (amountString.length > 11) { // Very large numbers (e.g., 100,000,000)
+                    amountFontSize = 'text-base'; 
+                } else if (amountString.length > 8) { // Large numbers (e.g., 1,000,000)
+                    amountFontSize = 'text-lg';
+                }
+                
+                // --- Dynamic font size for price (THB) ---
+                const priceString = p.price.toLocaleString();
+                let priceFontSize = 'text-sm';
+                
+                // Adjust font size for very long prices
+                if (priceString.length > 9) { // Very large price (e.g., 10,000,000)
+                    priceFontSize = 'text-xs';
+                }
+                
+                // Use card-base for package cards too
+                return `
+                    <div class="card-base package-card ${isUltimate} ${isHighTier} ${gridSpanClass} rounded-xl p-3 text-center" 
+                         data-package-id="${p.id}" 
+                         onclick="selectPackage(${p.id}, this)">
+                        <p class="package-name text-yellow-300 font-bold text-sm mb-1 truncate">${packageName}</p>
+                        <span class="currency-icon mx-auto mb-2">${gameData[selectedGame].currencyIcon}</span>
+                        <p class="text-white font-extrabold ${amountFontSize}">${amountString}</p>
+                        <p class="text-cyan-400 ${p.isUltimate ? 'text-lg' : 'text-sm'} font-medium">${currency}</p>
+                        <div class="mt-2 ${baseClass} p-1 rounded-md">
+                            <span class="${priceFontSize} font-bold text-white">${priceString} บาท</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        /**
+         * Handles package selection and updates the UI.
+         * @param {number} id - The ID of the selected package.
+         * @param {HTMLElement} element - The clicked DOM element.
+         */
+        function selectPackage(id, element) {
+            selectedPackageId = id;
+            
+            // Remove 'selected' class from all package cards
+            document.querySelectorAll('.package-card').forEach(card => {
+                card.classList.remove('selected');
+            });
+
+            // Add 'selected' class to the clicked card
+            element.classList.add('selected');
+
+            // Update button state
+            updateTopUpButtonState();
+        }
+
+        /**
+         * Validates User ID input based on the selected game's regex.
+         * @param {HTMLInputElement} input - The input element.
+         */
+        function validateInput(input) {
+            const errorElement = document.getElementById('id-error');
+            const value = input.value.trim();
+            
+            if (!selectedGame) {
+                errorElement.textContent = '';
+                return;
+            }
+
+            const currentGame = gameData[selectedGame];
+            const isValid = currentGame.idRegex.test(value);
+
+            if (!isValid && value.length > 0) {
+                errorElement.textContent = `รูปแบบ ${currentGame.idLabel} ไม่สอดคล้องกับข้อกำหนดของระบบ`;
+                input.classList.add('border-red-500');
+                input.classList.remove('border-gray-600');
+            } else if (value.length === 0) {
+                errorElement.textContent = '';
+                input.classList.remove('border-red-500');
+                input.classList.add('border-gray-600');
+            } else {
+                errorElement.textContent = '';
+                input.classList.remove('border-red-500');
+                input.classList.add('border-gray-600');
+            }
+            updateTopUpButtonState();
+        }
+
+        /**
+         * Finds package info by ID across all games.
+         * @param {number} id - The package ID.
+         * @returns {object|undefined} The package object.
+         */
+        function findPackageById(id) {
+            for (const gameId in gameData) {
+                const pkg = gameData[gameId].tiers.find(p => p.id === id);
+                if (pkg) return pkg;
+            }
+            return undefined;
+        }
+
+        /**
+         * Updates the state and text of the top-up button. (Highly formal Thai)
+         */
+        function updateTopUpButtonState() {
+            const value = userIdInput.value.trim();
+            const currentGame = selectedGame ? gameData[selectedGame] : null;
+
+            const isIdValid = currentGame && currentGame.idRegex.test(value);
+            const isPackageSelected = selectedPackageId !== null;
+            const packageInfo = findPackageById(selectedPackageId);
+
+            if (!currentGame) {
+                topUpButton.disabled = true;
+                document.getElementById('button-text').textContent = 'กรุณาระบุผลิตภัณฑ์ที่ต้องการทำรายการ';
+            } else if (!isIdValid) {
+                topUpButton.disabled = true;
+                document.getElementById('button-text').textContent = `กรุณาตรวจสอบความถูกต้องของ ${currentGame.idLabel}`;
+            } else if (!isPackageSelected) {
+                topUpButton.disabled = true;
+                document.getElementById('button-text').textContent = `กรุณากำหนดมูลค่าหน่วยเงิน (${currentGame.currency})`;
+            } else {
+                topUpButton.disabled = false;
+                document.getElementById('button-text').textContent = `ดำเนินการยืนยันและส่งคำสั่งชำระค่าบริการสำหรับ ${packageInfo.amount.toLocaleString()} ${currentGame.currency} (${packageInfo.price.toLocaleString()} บาท)`;
+            }
+        }
+        
+        /**
+         * Simulates the top-up process and shows a success modal.
+         */
+        function simulateTopUp() {
+            if (topUpButton.disabled) return;
+
+            // Get selected data
+            const userId = userIdInput.value.trim();
+            const packageInfo = findPackageById(selectedPackageId);
+            const currentGame = gameData[selectedGame];
+
+            // Simulate loading/processing
+            topUpButton.disabled = true;
+            document.getElementById('button-text').textContent = 'กำลังตรวจสอบและประมวลผลคำสั่งธุรกรรม...'; // Formal loading message
+
+            // Use a short timeout to simulate API call delay
+            setTimeout(() => {
+                // Restore button state
+                updateTopUpButtonState();
+
+                // NEW: Trigger Chaos Mode (The เวอร์โง่ๆ effect)
+                document.body.classList.add('chaos-mode');
+                isChaos = true;
+
+                // Show success message
+                showModal(userId, packageInfo, currentGame);
+                
+            }, 1800); 
+        }
+
+        /**
+         * Displays the custom success modal. (Highly formal Thai)
+         * @param {string} userId - The Player ID.
+         * @param {object} packageInfo - The selected package data.
+         * @param {object} currentGame - The current game data object.
+         */
+        function showModal(userId, packageInfo, currentGame) {
+            const modalMessage = document.getElementById('modal-message');
+            modalMessage.innerHTML = `
+                <p>ผลิตภัณฑ์: <span class="font-bold text-blue-800">${currentGame.name}</span></p>
+                <p>${currentGame.idLabel}: <span class="font-bold text-blue-800">${userId}</span></p>
+                <p>มูลค่าหน่วยเงิน: <span class="font-bold text-green-600">${packageInfo.amount.toLocaleString()} ${currentGame.currency}</span></p>
+                <p class="mt-3">ระบบได้ดำเนินการโอนมูลค่าหน่วยเงิน ${currentGame.currency} เข้าสู่บัญชีผู้ใช้งานของท่านเป็นที่เรียบร้อยแล้ว</p>
+                <p>โปรดตรวจสอบรายการในผลิตภัณฑ์ของท่าน และขอขอบพระคุณเป็นอย่างสูงที่มอบความไว้วางใจใช้บริการ RUEYMAN</p>
+            `;
+            document.getElementById('successModal').classList.remove('hidden');
+        }
+
+        /**
+         * Hides the custom success modal.
+         */
+        function closeModal() {
+            document.getElementById('successModal').classList.add('hidden');
+            
+            // NEW: Stop Chaos Mode
+            if (isChaos) {
+                document.body.classList.remove('chaos-mode');
+                isChaos = false;
+            }
+        }
+
+        // --- Initialization ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initial call to set button state correctly (disabled)
+            updateTopUpButtonState();
+        });
+
+    </script>
+
+</body>
+</html>
